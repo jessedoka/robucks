@@ -7,6 +7,9 @@ from uuid import uuid4
 from urllib.parse import urlparse
 from flask import Flask, jsonify, request
 import requests
+from flask_cors import CORS\
+
+
 
 class Blockchain(object):
     def __init__(self): 
@@ -17,17 +20,6 @@ class Blockchain(object):
         # genesis block
         self.new_block(previous_hash=1, proof=100)
     
-    def proof_of_work(self, last_proof):
-        # we can make any PoW algo here, but for now its 
-        # - Find a number p' such that hash(pp') contains leading 4 zeroes, where p is the previous p'
-        #  - p is the previous proof, and p' is the new proof
-        proof = 0
-
-        while self.valid_proof(last_proof, proof) is False:
-            proof += 1
-
-        return proof
-
     def new_block(self, proof, previous_hash=None):
         # Creates a new block and adds to chain
         
@@ -43,6 +35,7 @@ class Blockchain(object):
 
         self.current_transactions = []
         self.chain.append(block)
+        print(block)
         return block
 
     def new_transaction(self, sender, recipient, amount):
@@ -69,9 +62,32 @@ class Blockchain(object):
     def last_block(self):
         # returns the last block of the chain.  
         return self.chain[-1]
-    
+
+    def proof_of_work(self, last_proof):
+        """
+        Simple Proof of Work Algorithm:
+         - Find a number p' such that hash(pp') contains leading 4 zeroes, where p is the previous p'
+         - p is the previous proof, and p' is the new proof
+        :param last_proof: <int>
+        :return: <int>
+        """
+
+        proof = 0
+
+        while self.valid_proof(last_proof, proof) is False:
+            proof += 1
+
+        return proof
+
     @staticmethod
     def valid_proof(last_proof, proof):
+        """
+        Validates the Proof: Does hash(last_proof, proof) contain 4 leading zeroes?
+        :param last_proof: <int> Previous Proof
+        :param proof: <int> Current Proof
+        :return: <bool> True if correct, False if not.
+        """
+
         guess = f'{last_proof}{proof}'.encode()
         guess_hash = hashlib.sha256(guess).hexdigest()
         return guess_hash[:4] == "0000"
@@ -135,9 +151,8 @@ class Blockchain(object):
         
         return False 
 
-
-
 app = Flask(__name__)
+CORS(app)
 
 node_id = str(uuid4()).replace('-', '')
 chain = Blockchain()
@@ -163,7 +178,6 @@ def mine():
         'proof': block['proof'],
         'previous_hash': block['previous_hash'],
     }
-
     return jsonify(response), 200
 
 @app.route('/transactions/new', methods=['POST'])
@@ -222,5 +236,16 @@ def consensus():
     
     return jsonify(response), 200
 
+# check current nodes
+# reset nodes set
+# split between flask and blockchain scripts
+
 if __name__ == '__main__':
-    app.run(host='0.0.0.0', port=5000)
+    from argparse import ArgumentParser
+
+    parser = ArgumentParser()
+    parser.add_argument('-p', '--port', default=5000, type=int, help='port to listen on')
+    args = parser.parse_args()
+    port = args.port
+
+    app.run(host='0.0.0.0', port=port)
