@@ -16,6 +16,7 @@ class Blockchain(object):
         self.chain = []
         self.current_transactions = []
         self.nodes = set()
+        self.amount = 0
 
         # genesis block
         self.new_block(previous_hash=1, proof=100)
@@ -59,6 +60,25 @@ class Blockchain(object):
             'recipient': recipient,
             'amount': amount
         })
+
+        self.amount += amount
+
+        # reward system
+        if self.last_block['index'] % 4413 == 0:
+            self.current_transactions.append({
+                'sender': '0',
+                'recipient': sender,
+                'amount': 100
+            })
+
+            self.amount += 100
+
+        # limit
+        if self.amount > 21*10**6:
+            self.current_transactions = []
+            # handle the case where the amount is greater than 21 million
+            # reset the current transactions
+            # something where /mine will not work.
 
         return self.last_block['index'] + 1
         # increments the last block of the chain 
@@ -303,6 +323,13 @@ def reset_nodes():
     chain.nodes = set()
     response = {
         'message': 'Nodes have been reset'
+    }
+    return jsonify(response), 200
+
+@app.route('/amount', methods=['GET'])
+def amount():
+    response = {
+        'amount': chain.amount
     }
     return jsonify(response), 200
 
