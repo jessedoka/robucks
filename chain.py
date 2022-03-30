@@ -7,7 +7,7 @@ from uuid import uuid4
 from urllib.parse import urlparse
 from flask import Flask, jsonify, request
 import requests
-from flask_cors import CORS\
+from flask_cors import CORS
 
 
 
@@ -16,11 +16,18 @@ class Blockchain(object):
         self.chain = []
         self.current_transactions = []
         self.nodes = set()
+        self.amount = 4*10**8
 
         # genesis block
         self.new_block(previous_hash=1, proof=100)
     
     def new_block(self, proof, previous_hash=None):
+        """
+        Create a new Block in the Blockchain
+        :param proof: <int> The proof given by the Proof of Work algorithm
+        :param previous_hash: (Optional) <str> Hash of previous Block
+        :return: <dict> New Block
+        """
         # Creates a new block and adds to chain
         
         block = {
@@ -39,6 +46,13 @@ class Blockchain(object):
         return block
 
     def new_transaction(self, sender, recipient, amount):
+        """
+        Creates a new transaction to go into the next mined Block
+        :param sender: <str> Address of the Sender
+        :param recipient: <str> Address of the Recipient
+        :param amount: <int> Amount
+        :return: <int> The index of the Block that will hold this transaction
+        """
         # Adds a new transaction to the list of transactions
         
         self.current_transactions.append({
@@ -52,6 +66,11 @@ class Blockchain(object):
 
     @staticmethod
     def hash(block):
+        """
+        Creates a SHA-256 hash of a Block
+        :param block: <dict> Block
+        :return: <str>
+        """
         # Hashes a block
         # Creates a SHA-256 hash of a block
         
@@ -60,6 +79,10 @@ class Blockchain(object):
     
     @property
     def last_block(self):
+        """
+        Returns the last Block in the chain
+        :return: <dict> last Block
+        """
         # returns the last block of the chain.  
         return self.chain[-1]
 
@@ -93,11 +116,21 @@ class Blockchain(object):
         return guess_hash[:4] == "0000"
 
     def register_node(self, address):
+        """
+        Add a new node to the list of nodes
+        :param address: <str> Address of node. Eg. 'http://
+        :return: None
+        """
         # adding a new list of nodes
         parsed_url = urlparse(address)
         self.nodes.add(parsed_url.netloc)
 
     def valid_chain(self, chain):
+        """
+        Determine if a given blockchain is valid
+        :param chain: <list> A blockchain
+        :return: <bool> True if valid, False if not
+        """
         # determining if the blockchain is valid
         
 
@@ -122,7 +155,12 @@ class Blockchain(object):
         return True 
 
     def resolve_conflicts(self):
-
+        
+        """
+        This is our Consensus Algorithm, it resolves conflicts
+        by replacing our chain with the longest one in the network.
+        :return: <bool> True if our chain was replaced, False if not
+        """
         # replaces chain with the longest one on our network 
         # therefore resolving conflicts that may turn up
 
@@ -227,6 +265,10 @@ def register_nodes():
 
 @app.route('/nodes/resolve', methods=['GET'])
 def consensus():
+    """
+    Resolve conflicts by replacing the chain with the longest one
+    :return: <bool> True if chain is replaced, False if not
+    """
     replaced = chain.resolve_conflicts()
 
     if replaced:
@@ -263,10 +305,10 @@ def reset_nodes():
 
 if __name__ == '__main__':
     from argparse import ArgumentParser
-
     parser = ArgumentParser()
     parser.add_argument('-p', '--port', default=5000, type=int, help='port to listen on')
     args = parser.parse_args()
     port = args.port
 
-    app.run(host='0.0.0.0', port=port)
+    app.run(port=port)
+
