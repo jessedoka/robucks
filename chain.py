@@ -16,7 +16,6 @@ class Blockchain(object):
         self.chain = []
         self.current_transactions = []
         self.nodes = set()
-        self.amount = 4*10**8
 
         # genesis block
         self.new_block(previous_hash=1, proof=100)
@@ -123,7 +122,13 @@ class Blockchain(object):
         """
         # adding a new list of nodes
         parsed_url = urlparse(address)
-        self.nodes.add(parsed_url.netloc)
+        if parsed_url.netloc:
+            self.nodes.add(parsed_url.netloc)
+        elif parsed_url.path:
+            # Accepts an URL without scheme like '192.168.0.5:5000'.
+            self.nodes.add(parsed_url.path)
+        else:
+            raise ValueError('Invalid URL')
 
     def valid_chain(self, chain):
         """
