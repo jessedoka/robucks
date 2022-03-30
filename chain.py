@@ -203,6 +203,11 @@ def full_chain():
 
 @app.route('/nodes/register', methods=['POST'])
 def register_nodes():
+    """
+    Registers a new node on the network
+    Make sure to add both the address and the port number http://{}:{}
+    to both nodes
+    """
     values = request.get_json()
 
     nodes = values.get('nodes')
@@ -218,6 +223,7 @@ def register_nodes():
     }
 
     return jsonify(response), 201
+
 
 @app.route('/nodes/resolve', methods=['GET'])
 def consensus():
@@ -236,8 +242,23 @@ def consensus():
     
     return jsonify(response), 200
 
-# check current nodes
-# reset nodes set
+
+@app.route('/nodes/get', methods=['GET'])
+def get_nodes():
+    nodes = list(chain.nodes)
+    response = {
+        'nodes': nodes
+    }
+    return jsonify(response), 200
+
+@app.route('/nodes/reset', methods=['GET'])
+def reset_nodes():
+    chain.nodes = set()
+    response = {
+        'message': 'Nodes have been reset'
+    }
+    return jsonify(response), 200
+
 # split between flask and blockchain scripts
 
 if __name__ == '__main__':
