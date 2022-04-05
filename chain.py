@@ -1,4 +1,4 @@
-import hashlib 
+import hashlib
 import json
 from operator import length_hint
 from time import time
@@ -12,7 +12,7 @@ from merkle import MerkleTree
 
 
 class Blockchain(object):
-    def __init__(self): 
+    def __init__(self):
         self.chain = []
         self.current_transactions = []
         self.nodes = set()
@@ -20,7 +20,7 @@ class Blockchain(object):
 
         # genesis block
         self.new_block(previous_hash=1, proof=100)
-    
+
     def new_block(self, proof, previous_hash=None):
         """
         Create a new Block in the Blockchain
@@ -64,9 +64,8 @@ class Blockchain(object):
         # hash of the transaction is the hash of the sender, recipient and amount
         # using merkle trees to verify the integrity of the transaction
 
-        
         self.current_transactions.append({
-            'sender':sender,
+            'sender': sender,
             'recipient': recipient,
             'amount': amount
         })
@@ -91,7 +90,7 @@ class Blockchain(object):
             # something where /mine will not work.
 
         return self.last_block['index'] + 1
-        # increments the last block of the chain 
+        # increments the last block of the chain
 
     @staticmethod
     def hash(block):
@@ -102,17 +101,17 @@ class Blockchain(object):
         """
         # Hashes a block
         # Creates a SHA-256 hash of a block
-        
+
         block_string = json.dumps(block, sort_keys=True).encode()
-        return hashlib.sha256(block_string).hexdigest() 
-    
+        return hashlib.sha256(block_string).hexdigest()
+
     @property
     def last_block(self):
         """
         Returns the last Block in the chain
         :return: <dict> last Block
         """
-        # returns the last block of the chain.  
+        # returns the last block of the chain.
         return self.chain[-1]
 
     def proof_of_work(self, last_proof):
@@ -181,10 +180,9 @@ class Blockchain(object):
         6. Return true if S[n] is valid and register S[n], false otherwise.
         
         """
-        
 
         last_block = chain[0]
-        current_index = 1 
+        current_index = 1
 
         # Loop through each block and verifing both hash and proof
         while current_index < len(chain):
@@ -195,24 +193,23 @@ class Blockchain(object):
 
             # Check that the hash of the previous block is correct
             if block['previous_hash'] != self.hash(last_block):
-                return False 
-            
+                return False
+
             # does this produes 4 leading 0's if not return false
             if not self.valid_proof(last_block['proof'], block['proof']):
-                return False 
-            
+                return False
+
             # if block['timestamp'] >= time() + 2*60*60 or block['timestamp'] >= last_block['timestamp']:
             #     return False
 
             # resolve not working need to figure out why
             # 4, 5, 6 not sure how to implement.
-            
-            last_block = block 
+
+            last_block = block
             current_index += 1
-        return True 
+        return True
 
     def resolve_conflicts(self):
-        
         """
         This is our Consensus Algorithm, it resolves conflicts
         by replacing our chain with the longest one in the network.
@@ -227,32 +224,34 @@ class Blockchain(object):
         then it will replace the chain. 
         """
 
-        neighbors = self.nodes 
-        new_chain = None 
+        neighbors = self.nodes
+        new_chain = None
 
         max_length = len(self.chain)
         # verify each chain from each node
         for node in neighbors:
             response = requests.get(f'http://{node}/chain')
 
-            if response.status_code == 200: 
+            if response.status_code == 200:
                 length = response.json()['length']
                 chain = response.json()['chain']
 
                 if length > max_length and self.valid_chain(chain):
                     max_length = length
-                    new_chain = chain 
+                    new_chain = chain
         if new_chain:
-            self.chain = new_chain 
-            return True 
-        
-        return False 
+            self.chain = new_chain
+            return True
+
+        return False
+
 
 app = Flask(__name__)
 CORS(app)
 
 node_id = str(uuid4()).replace('-', '')
 chain = Blockchain()
+
 
 @app.route('/mine', methods=['GET'])
 def mine():
@@ -277,6 +276,7 @@ def mine():
     }
     return jsonify(response), 200
 
+
 @app.route('/transactions/new', methods=['POST'])
 def new_transaction():
     values = request.get_json()
@@ -285,10 +285,12 @@ def new_transaction():
     # if we are missing any values from requirement
     if not all(k in values for k in required):
         return 'Missing values', 400
-    
-    index = chain.new_transaction(values['sender'], values['recipient'], values['amount'])
+
+    index = chain.new_transaction(
+        values['sender'], values['recipient'], values['amount'])
     response = {'message': f'Transaction will be added to the Block {index}'}
     return jsonify(response), 201
+
 
 @app.route('/chain', methods=['GET'])
 def full_chain():
@@ -296,7 +298,8 @@ def full_chain():
         'chain': chain.chain,
         'length': len(chain.chain)
     }
-    return jsonify(response), 200 
+    return jsonify(response), 200
+
 
 @app.route('/nodes/register', methods=['POST'])
 def register_nodes():
@@ -310,7 +313,7 @@ def register_nodes():
     nodes = values.get('nodes')
     if nodes is None:
         return "Error: Please supply a valid list of nodes", 400
-    
+
     for node in nodes:
         chain.register_node(node)
 
@@ -337,10 +340,10 @@ def consensus():
         }
     else:
         response = {
-            'message':'Our chain is authoritative',
+            'message': 'Our chain is authoritative',
             'chain': chain.chain
         }
-    
+
     return jsonify(response), 200
 
 
@@ -352,6 +355,7 @@ def get_nodes():
     }
     return jsonify(response), 200
 
+
 @app.route('/nodes/reset', methods=['GET'])
 def reset_nodes():
     chain.nodes = set()
@@ -359,6 +363,7 @@ def reset_nodes():
         'message': 'Nodes have been reset'
     }
     return jsonify(response), 200
+
 
 @app.route('/amount', methods=['GET'])
 def amount():
@@ -369,12 +374,13 @@ def amount():
 
 # split between flask and blockchain scripts
 
+
 if __name__ == '__main__':
     from argparse import ArgumentParser
     parser = ArgumentParser()
-    parser.add_argument('-p', '--port', default=5000, type=int, help='port to listen on')
-    args = parser.parse_args()   
+    parser.add_argument('-p', '--port', default=5000,
+                        type=int, help='port to listen on')
+    args = parser.parse_args()
     port = args.port
 
     app.run(port=port)
-
