@@ -11,7 +11,7 @@ from flask_cors import CORS
 from merkle import MerkleTree
 
 
-class Blockchain(object):
+class Robucks(object):
     def __init__(self): 
         self.chain = []
         self.current_transactions = []
@@ -252,7 +252,7 @@ app = Flask(__name__)
 CORS(app)
 
 node_id = str(uuid4()).replace('-', '')
-chain = Blockchain()
+chain = Robucks()
 
 @app.route('/mine', methods=['GET'])
 def mine():
