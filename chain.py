@@ -7,7 +7,9 @@ from urllib.parse import urlparse
 from uuid import uuid4
 
 import requests
-from flask import Flask, jsonify, request
+from flask import Flask
+from flask import jsonify
+from flask import request
 from flask_cors import CORS
 
 from merkle import MerkleTree
