@@ -8,7 +8,7 @@ from urllib.parse import urlparse
 from flask import Flask, jsonify, request
 import requests
 from flask_cors import CORS
-
+from merkle import MerkleTree
 
 
 class Blockchain(object):
@@ -28,12 +28,19 @@ class Blockchain(object):
         :param previous_hash: (Optional) <str> Hash of previous Block
         :return: <dict> New Block
         """
+        # handles the genisis block
+        if len(self.current_transactions) > 0:
+            merkle = MerkleTree(self.current_transactions)
+            merkle.build()
+            merkle_root = merkle.get_root()
+        else:
+            merkle_root = None
+
         # Creates a new block and adds to chain
-        
         block = {
             'index': len(self.chain) + 1,
             'timestamp': time(),
-            'transactions': self.current_transactions,
+            'merkle_root_hash': merkle_root,
             'proof': proof,
             'previous_hash': previous_hash or self.hash(self.chain[-1])
         }
@@ -264,7 +271,7 @@ def mine():
     response = {
         'message': "New Block Forged",
         'index': block['index'],
-        'transactions': block['transactions'],
+        'merkle_root_hash': block['merkle_root_hash'],
         'proof': block['proof'],
         'previous_hash': block['previous_hash'],
     }
