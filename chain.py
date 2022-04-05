@@ -3,11 +3,13 @@ import json
 from operator import length_hint
 from time import time
 from urllib import response
-from uuid import uuid4
 from urllib.parse import urlparse
-from flask import Flask, jsonify, request
+from uuid import uuid4
+
 import requests
+from flask import Flask, jsonify, request
 from flask_cors import CORS
+
 from merkle import MerkleTree
 
 
