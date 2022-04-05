@@ -178,7 +178,7 @@ class Blockchain(object):
         for i in range(0, n-1):
             S[i+1] = S[i] + TX[i]
         6. Return true if S[n] is valid and register S[n], false otherwise.
-        
+
         """
 
         last_block = chain[0]
@@ -216,12 +216,12 @@ class Blockchain(object):
         :return: <bool> True if our chain was replaced, False if not
         """
         """
-        replaces chain with the longest one on our network 
+        replaces chain with the longest one on our network
         therefore resolving conflicts that may turn up
 
         Visites all neighbouring nodes and using valid chain will verify
         whether the chain is valid and if the length of the chain is greater
-        then it will replace the chain. 
+        then it will replace the chain.
         """
 
         neighbors = self.nodes
