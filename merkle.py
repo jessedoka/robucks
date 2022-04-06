@@ -3,7 +3,6 @@ import json
 
 
 class MerkleTree:
-
     def __init__(self, data):
         self.leaves = data
         self.root = None
@@ -18,12 +17,11 @@ class MerkleTree:
             hashlib.sha256(json.dumps(s, sort_keys=True).encode()).hexdigest()
             for s in self.leaves
         ]
-        self.leaves = [
-            self.leaves[i:i + 2] for i in range(0, len(self.leaves), 2)
-        ]
+        self.leaves = [self.leaves[i : i + 2] for i in range(0, len(self.leaves), 2)]
         self.leaves = [
             self.leaves[0][0] + self.leaves[0][1]
-            if len(self.leaves[0]) == 2 else self.leaves[0][0]
+            if len(self.leaves[0]) == 2
+            else self.leaves[0][0]
             for self.leaves[0] in self.leaves
         ]
         self.build()
