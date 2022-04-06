@@ -1,6 +1,5 @@
 import hashlib
 import json
-from operator import length_hint
 from time import time
 from urllib import response
 from urllib.parse import urlparse
@@ -276,7 +275,8 @@ def mine():
     }
     return jsonify(response), 200
 
-
+# TODO: manage UTXO and wallets
+# wallets would be the nodes them selves (just hashed)
 @app.route("/transactions/new", methods=["POST"])
 def new_transaction():
     values = request.get_json()
