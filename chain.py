@@ -16,6 +16,7 @@ from merkle import MerkleTree
 
 
 class Robucks(object):
+
     def __init__(self):
         self.chain = []
         self.current_transactions = []
@@ -68,17 +69,21 @@ class Robucks(object):
         # hash of the transaction is the hash of the sender, recipient and amount
         # using merkle trees to verify the integrity of the transaction
 
-        self.current_transactions.append(
-            {"sender": sender, "recipient": recipient, "amount": amount}
-        )
+        self.current_transactions.append({
+            "sender": sender,
+            "recipient": recipient,
+            "amount": amount
+        })
 
         self.amount += amount
 
         # reward system
         if self.last_block["index"] % 4413 == 0:
-            self.current_transactions.append(
-                {"sender": "0", "recipient": sender, "amount": 100}
-            )
+            self.current_transactions.append({
+                "sender": "0",
+                "recipient": sender,
+                "amount": 100
+            })
 
             self.amount += 100
 
@@ -281,9 +286,8 @@ def new_transaction():
     if not all(k in values for k in required):
         return "Missing values", 400
 
-    index = chain.new_transaction(
-        values["sender"], values["recipient"], values["amount"]
-    )
+    index = chain.new_transaction(values["sender"], values["recipient"],
+                                  values["amount"])
     response = {"message": f"Transaction will be added to the Block {index}"}
     return jsonify(response), 201
 
@@ -327,9 +331,15 @@ def consensus():
     replaced = chain.resolve_conflicts()
 
     if replaced:
-        response = {"message": "Our chain was replaced", "new_chain": chain.chain}
+        response = {
+            "message": "Our chain was replaced",
+            "new_chain": chain.chain
+        }
     else:
-        response = {"message": "Our chain is authoritative", "chain": chain.chain}
+        response = {
+            "message": "Our chain is authoritative",
+            "chain": chain.chain
+        }
 
     return jsonify(response), 200
 
@@ -360,9 +370,11 @@ if __name__ == "__main__":
     from argparse import ArgumentParser
 
     parser = ArgumentParser()
-    parser.add_argument(
-        "-p", "--port", default=5000, type=int, help="port to listen on"
-    )
+    parser.add_argument("-p",
+                        "--port",
+                        default=5000,
+                        type=int,
+                        help="port to listen on")
     args = parser.parse_args()
     port = args.port
 
