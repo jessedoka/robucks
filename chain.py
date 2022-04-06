@@ -16,7 +16,7 @@ from merkle import MerkleTree
 
 
 class Robucks(object):
-    def __init__(self): 
+    def __init__(self):
         self.chain = []
         self.current_transactions = []
         self.nodes = set()
