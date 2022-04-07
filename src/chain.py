@@ -1,6 +1,5 @@
 import hashlib
 import json
-from operator import length_hint
 from time import time
 from urllib import response
 from urllib.parse import urlparse
