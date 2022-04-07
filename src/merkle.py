@@ -4,11 +4,11 @@ import json
 
 class MerkleTree:
 
-    def __init__(self, data):
+    def __init__(self, data: list):
         self.leaves = data
         self.root = None
 
-    def build(self):
+    def build(self) -> str:
         if len(self.leaves) == 1:
             self.root = self.leaves[0]
             return
@@ -28,7 +28,7 @@ class MerkleTree:
         ]
         self.build()
 
-    def get_root(self):
+    def get_root(self) -> str:
         root = json.dumps(self.root, sort_keys=True).encode()
         return hashlib.sha256(root).hexdigest()
 
