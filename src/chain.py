@@ -379,3 +379,7 @@ if __name__ == "__main__":
     port = args.port
 
     app.run(port=port)
+
+# TODO: peer to peer management
+# TODO: merkle tree SPV transaction verification
+# TODO: add a wallet to the chain
