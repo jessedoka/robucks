@@ -275,7 +275,8 @@ def mine():
     }
     return jsonify(response), 200
 
-
+# TODO: manage UTXO and wallets
+# wallets would be the nodes them selves (just hashed)
 @app.route("/transactions/new", methods=["POST"])
 def new_transaction():
     values = request.get_json()
@@ -378,3 +379,7 @@ if __name__ == "__main__":
     port = args.port
 
     app.run(port=port)
+
+# TODO: peer to peer management
+# TODO: merkle tree SPV transaction verification
+# TODO: add a wallet to the chain
