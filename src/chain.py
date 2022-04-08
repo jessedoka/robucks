@@ -1,7 +1,6 @@
 from atexit import register
 import hashlib
 import json
-from operator import length_hint
 from time import time
 from urllib import response
 from urllib.parse import urlparse
@@ -33,7 +32,7 @@ class Robucks(object):
         # genesis block
         self.new_block(previous_hash=1, proof=100)
 
-    def new_block(self, proof, previous_hash=None):
+    def new_block(self, proof: int, previous_hash: any = None) -> dict:
         """
         Create a new Block in the Blockchain
         :param proof: <int> The proof given by the Proof of Work algorithm
@@ -61,10 +60,9 @@ class Robucks(object):
 
         self.current_transactions = []
         self.chain.append(block)
-        print(block)
         return block
 
-    def new_transaction(self, sender, recipient, amount):
+    def new_transaction(self, sender: str, recipient: str, amount: int) -> int:
         """
         Creates a new transaction to go into the next mined Block
         :param sender: <str> Address of the Sender
@@ -105,7 +103,7 @@ class Robucks(object):
         # increments the last block of the chain
 
     @staticmethod
-    def hash(block):
+    def hash(block: dict) -> str:
         """
         Creates a SHA-256 hash of a Block
         :param block: <dict> Block
@@ -126,7 +124,7 @@ class Robucks(object):
         # returns the last block of the chain.
         return self.chain[-1]
 
-    def proof_of_work(self, last_proof):
+    def proof_of_work(self, last_proof: int) -> int:
         """
         Simple Proof of Work Algorithm:
          - Find a number p' such that hash(pp') contains leading 4 zeroes, where p is the previous p'
@@ -143,7 +141,7 @@ class Robucks(object):
         return proof
 
     @staticmethod
-    def valid_proof(last_proof, proof):
+    def valid_proof(last_proof: int, proof: int) -> bool:
         """
         Validates the Proof: Does hash(last_proof, proof) contain 4 leading zeroes?
         :param last_proof: <int> Previous Proof
@@ -155,7 +153,7 @@ class Robucks(object):
         guess_hash = hashlib.sha256(guess).hexdigest()
         return guess_hash[:4] == "0000"
 
-    def register_node(self, address, identifier):
+    def register_node(self, address: str, identifier: str) -> None:
         """
         Add a new node to the list of nodes
         :param address: <str> Address of node. Eg. 'http://
@@ -173,7 +171,7 @@ class Robucks(object):
             else:
                 raise ValueError("Invalid URL")
 
-    def valid_chain(self, chain):
+    def valid_chain(self, chain: list) -> bool:
         """
         Determine if a given blockchain is valid
         :param chain: <list> A blockchain
@@ -315,7 +313,8 @@ def mine():
     
     return jsonify(response), 200
 
-
+# TODO: manage UTXO and wallets
+# wallets would be the nodes them selves (just hashed)
 @app.route("/transactions/new", methods=["POST"])
 def new_transaction():
     values = request.get_json()
@@ -361,3 +360,5 @@ def amount():
 
 if __name__ == "__main__":
     app.run(port=port)
+
+# TODO: merkle tree SPV transaction verification
