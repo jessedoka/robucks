@@ -1,3 +1,4 @@
+from atexit import register
 import hashlib
 import json
 from time import time
@@ -6,12 +7,18 @@ from urllib.parse import urlparse
 from uuid import uuid4
 
 import requests
-from flask import Flask
+from flask import Flask, redirect
 from flask import jsonify
 from flask import request
 from flask_cors import CORS
 
 from merkle import MerkleTree
+from argparse import ArgumentParser
+
+parser = ArgumentParser()
+parser.add_argument("-p", "--port", default=5000, type=int, help="port to listen on")
+args = parser.parse_args()
+port = args.port
 
 
 class Robucks(object):
@@ -146,21 +153,23 @@ class Robucks(object):
         guess_hash = hashlib.sha256(guess).hexdigest()
         return guess_hash[:4] == "0000"
 
-    def register_node(self, address: str) -> None:
+    def register_node(self, address: str, identifier: str) -> None:
         """
         Add a new node to the list of nodes
         :param address: <str> Address of node. Eg. 'http://
         :return: None
         """
+        
         # adding a new list of nodes
         parsed_url = urlparse(address)
-        if parsed_url.netloc:
-            self.nodes.add(parsed_url.netloc)
-        elif parsed_url.path:
-            # Accepts an URL without scheme like '192.168.0.5:5000'.
-            self.nodes.add(parsed_url.path)
-        else:
-            raise ValueError("Invalid URL")
+        with open('nodes.txt', 'a') as f:
+            if parsed_url.netloc:
+                f.write(f"{parsed_url.netloc} {identifier}" +  '\n')
+            elif parsed_url.path:
+                # Accepts an URL without scheme like '192.168.0.5:5000'.
+                f.write(f"{parsed_url.path} {identifier}" +  '\n')
+            else:
+                raise ValueError("Invalid URL")
 
     def valid_chain(self, chain: list) -> bool:
         """
@@ -226,6 +235,7 @@ class Robucks(object):
         then it will replace the chain.
         """
 
+
         neighbors = self.nodes
         new_chain = None
 
@@ -254,6 +264,21 @@ CORS(app)
 node_id = str(uuid4()).replace("-", "")
 chain = Robucks()
 
+@app.route('/')
+def index():
+
+    checking = True
+    if checking:
+        host = 'http://127.0.0.1:' + str(port)
+        chain.register_node(host, node_id)
+
+        # TODO if nodes.txt is not empty then read it and add to the chain
+        with open('nodes.txt', 'r') as f:
+            for line in f:
+                node, _ = line.strip().split(' ')
+                chain.nodes.add(node)
+        checking = False
+    return redirect('/chain', code=302, Response=None, headers={'Location': '/chain'})
 
 @app.route("/mine", methods=["GET"])
 def mine():
@@ -265,13 +290,27 @@ def mine():
     previous_hash = chain.hash(last_block)
     block = chain.new_block(proof, previous_hash)
 
+    # checks whether there is a longer chain.
+    # TODO find a way to keep transactions
+
+    """
+    When a Chain is a replaced, a chain may hold a transaction that is not
+    been broadcasted to the network. Need to check whether that is not the case
+    """
+    
+    replaced = chain.resolve_conflicts()
+
     response = {
         "message": "New Block Forged",
         "index": block["index"],
         "merkle_root_hash": block["merkle_root_hash"],
         "proof": block["proof"],
         "previous_hash": block["previous_hash"],
+        'replaced': replaced
     }
+
+    # resolve conflicts
+    
     return jsonify(response), 200
 
 # TODO: manage UTXO and wallets
@@ -293,55 +332,9 @@ def new_transaction():
 
 @app.route("/chain", methods=["GET"])
 def full_chain():
+    
     response = {"chain": chain.chain, "length": len(chain.chain)}
     return jsonify(response), 200
-
-
-@app.route("/nodes/register", methods=["POST"])
-def register_nodes():
-    """
-    Registers a new node on the network
-    Make sure to add both the address and the port number http://{}:{}
-    to both nodes
-    """
-    values = request.get_json()
-
-    nodes = values.get("nodes")
-    if nodes is None:
-        return "Error: Please supply a valid list of nodes", 400
-
-    for node in nodes:
-        chain.register_node(node)
-
-    response = {
-        "message": "New nodes have been added",
-        "total_nodes": list(chain.nodes),
-    }
-
-    return jsonify(response), 201
-
-
-@app.route("/nodes/resolve", methods=["GET"])
-def consensus():
-    """
-    Resolve conflicts by replacing the chain with the longest one
-    :return: <bool> True if chain is replaced, False if not
-    """
-    replaced = chain.resolve_conflicts()
-
-    if replaced:
-        response = {
-            "message": "Our chain was replaced",
-            "new_chain": chain.chain
-        }
-    else:
-        response = {
-            "message": "Our chain is authoritative",
-            "chain": chain.chain
-        }
-
-    return jsonify(response), 200
-
 
 @app.route("/nodes/get", methods=["GET"])
 def get_nodes():
@@ -366,17 +359,6 @@ def amount():
 # split between flask and blockchain scripts
 
 if __name__ == "__main__":
-    from argparse import ArgumentParser
-
-    parser = ArgumentParser()
-    parser.add_argument("-p",
-                        "--port",
-                        default=5000,
-                        type=int,
-                        help="port to listen on")
-    args = parser.parse_args()
-    port = args.port
-
     app.run(port=port)
 
 # TODO: merkle tree SPV transaction verification
