@@ -17,14 +17,12 @@ from merkle import MerkleTree
 from argparse import ArgumentParser
 
 parser = ArgumentParser()
-parser.add_argument("-p", "--port", default=5000,
-                    type=int, help="port to listen on")
+parser.add_argument("-p", "--port", default=5000, type=int, help="port to listen on")
 args = parser.parse_args()
 port = args.port
 
 
 class Robucks(object):
-
     def __init__(self):
         self.chain = []
         self.current_transactions = []
@@ -77,21 +75,17 @@ class Robucks(object):
         # hash of the transaction is the hash of the sender, recipient and amount
         # using merkle trees to verify the integrity of the transaction
 
-        self.current_transactions.append({
-            "sender": sender,
-            "recipient": recipient,
-            "amount": amount
-        })
+        self.current_transactions.append(
+            {"sender": sender, "recipient": recipient, "amount": amount}
+        )
 
         self.amount += amount
 
         # reward system
         if self.last_block["index"] % 4413 == 0:
-            self.current_transactions.append({
-                "sender": "0",
-                "recipient": sender,
-                "amount": 100
-            })
+            self.current_transactions.append(
+                {"sender": "0", "recipient": sender, "amount": 100}
+            )
 
             self.amount += 100
 
@@ -165,12 +159,12 @@ class Robucks(object):
 
         # adding a new list of nodes
         parsed_url = urlparse(address)
-        with open('nodes.txt', 'a') as f:
+        with open("nodes.txt", "a") as f:
             if parsed_url.netloc:
-                f.write(f"{parsed_url.netloc} {identifier}" + '\n')
+                f.write(f"{parsed_url.netloc} {identifier}" + "\n")
             elif parsed_url.path:
                 # Accepts an URL without scheme like '192.168.0.5:5000'.
-                f.write(f"{parsed_url.path} {identifier}" + '\n')
+                f.write(f"{parsed_url.path} {identifier}" + "\n")
             else:
                 raise ValueError("Invalid URL")
 
@@ -267,21 +261,21 @@ node_id = str(uuid4()).replace("-", "")
 chain = Robucks()
 
 
-@app.route('/')
+@app.route("/")
 def index():
 
     checking = True
     if checking:
-        host = 'http://127.0.0.1:' + str(port)
+        host = "http://127.0.0.1:" + str(port)
         chain.register_node(host, node_id)
 
         # TODO if nodes.txt is not empty then read it and add to the chain
-        with open('nodes.txt', 'r') as f:
+        with open("nodes.txt", "r") as f:
             for line in f:
-                node, _ = line.strip().split(' ')
+                node, _ = line.strip().split(" ")
                 chain.nodes.add(node)
         checking = False
-    return redirect('/chain', code=302, Response=None, headers={'Location': '/chain'})
+    return redirect("/chain", code=302, Response=None, headers={"Location": "/chain"})
 
 
 @app.route("/mine", methods=["GET"])
@@ -310,7 +304,7 @@ def mine():
         "merkle_root_hash": block["merkle_root_hash"],
         "proof": block["proof"],
         "previous_hash": block["previous_hash"],
-        'replaced': replaced
+        "replaced": replaced,
     }
 
     # resolve conflicts
@@ -327,8 +321,9 @@ def new_transaction():
     if not all(k in values for k in required):
         return "Missing values", 400
 
-    index = chain.new_transaction(values["sender"], values["recipient"],
-                                  values["amount"])
+    index = chain.new_transaction(
+        values["sender"], values["recipient"], values["amount"]
+    )
     response = {"message": f"Transaction will be added to the Block {index}"}
     return jsonify(response), 201
 
