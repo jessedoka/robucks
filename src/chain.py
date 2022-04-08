@@ -9,9 +9,11 @@ from urllib.parse import urlparse
 from uuid import uuid4
 
 import requests
-from flask import Flask, jsonify, redirect, request
+from flask import Flask
+from flask import jsonify
+from flask import redirect
+from flask import request
 from flask_cors import CORS
-
 from merkle import MerkleTree
 
 parser = ArgumentParser()
