@@ -17,7 +17,8 @@ from merkle import MerkleTree
 from argparse import ArgumentParser
 
 parser = ArgumentParser()
-parser.add_argument("-p", "--port", default=5000, type=int, help="port to listen on")
+parser.add_argument("-p", "--port", default=5000,
+                    type=int, help="port to listen on")
 args = parser.parse_args()
 port = args.port
 
@@ -161,15 +162,15 @@ class Robucks(object):
         :param address: <str> Address of node. Eg. 'http://
         :return: None
         """
-        
+
         # adding a new list of nodes
         parsed_url = urlparse(address)
         with open('nodes.txt', 'a') as f:
             if parsed_url.netloc:
-                f.write(f"{parsed_url.netloc} {identifier}" +  '\n')
+                f.write(f"{parsed_url.netloc} {identifier}" + '\n')
             elif parsed_url.path:
                 # Accepts an URL without scheme like '192.168.0.5:5000'.
-                f.write(f"{parsed_url.path} {identifier}" +  '\n')
+                f.write(f"{parsed_url.path} {identifier}" + '\n')
             else:
                 raise ValueError("Invalid URL")
 
@@ -237,7 +238,6 @@ class Robucks(object):
         then it will replace the chain.
         """
 
-
         neighbors = self.nodes
         new_chain = None
 
@@ -266,6 +266,7 @@ CORS(app)
 node_id = str(uuid4()).replace("-", "")
 chain = Robucks()
 
+
 @app.route('/')
 def index():
 
@@ -281,6 +282,7 @@ def index():
                 chain.nodes.add(node)
         checking = False
     return redirect('/chain', code=302, Response=None, headers={'Location': '/chain'})
+
 
 @app.route("/mine", methods=["GET"])
 def mine():
@@ -299,7 +301,7 @@ def mine():
     When a Chain is a replaced, a chain may hold a transaction that is not
     been broadcasted to the network. Need to check whether that is not the case
     """
-    
+
     replaced = chain.resolve_conflicts()
 
     response = {
@@ -312,7 +314,7 @@ def mine():
     }
 
     # resolve conflicts
-    
+
     return jsonify(response), 200
 
 
@@ -333,9 +335,10 @@ def new_transaction():
 
 @app.route("/chain", methods=["GET"])
 def full_chain():
-    
+
     response = {"chain": chain.chain, "length": len(chain.chain)}
     return jsonify(response), 200
+
 
 @app.route("/nodes/get", methods=["GET"])
 def get_nodes():
