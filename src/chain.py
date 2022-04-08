@@ -1,6 +1,7 @@
-from atexit import register
 import hashlib
 import json
+from argparse import ArgumentParser
+from atexit import register
 from operator import length_hint
 from time import time
 from urllib import response
@@ -8,13 +9,10 @@ from urllib.parse import urlparse
 from uuid import uuid4
 
 import requests
-from flask import Flask, redirect
-from flask import jsonify
-from flask import request
+from flask import Flask, jsonify, redirect, request
 from flask_cors import CORS
 
 from merkle import MerkleTree
-from argparse import ArgumentParser
 
 parser = ArgumentParser()
 parser.add_argument("-p", "--port", default=5000, type=int, help="port to listen on")
