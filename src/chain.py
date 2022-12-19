@@ -47,6 +47,7 @@ class Robucks(object):
             "merkle_root_hash": merkle_root,
             "proof": proof,
             "previous_hash": previous_hash or self.hash(self.chain[-1]),
+            "state": None
         }
 
         # Reset
@@ -167,9 +168,8 @@ class Robucks(object):
         Determine if a given blockchain is valid
         :param chain: <list> A blockchain
         :return: <bool> True if valid, False if not
-        """
-        # determining if the blockchain is valid
-        """
+
+
         Ethereum WhitePaper:
         A valid block is a block that satisfies the following conditions:
         1. Check if the previous block is referenced by the current block.
@@ -180,7 +180,6 @@ class Robucks(object):
         for i in range(0, n-1):
             S[i+1] = S[i] + TX[i]
         6. Return true if S[n] is valid and register S[n], false otherwise.
-
         """
 
         last_block = chain[0]
@@ -189,23 +188,22 @@ class Robucks(object):
         # Loop through each block and verifing both hash and proof
         while current_index < len(chain):
             block = chain[current_index]
-            print(f"{last_block}")
-            print(f"{block}")
-            print("\n-----------\n")
 
-            # Check that the hash of the previous block is correct
             if block["previous_hash"] != self.hash(last_block):
                 return False
 
-            # does this produes 4 leading 0's if not return false
             if not self.valid_proof(last_block["proof"], block["proof"]):
                 return False
 
-            # if block['timestamp'] >= time() + 2*60*60 or block['timestamp'] >= last_block['timestamp']:
-            #     return False
+            if block['timestamp'] >= time() + 2*60**2 or \
+                block['timestamp'] >= last_block['timestamp']:
+                return False
+            
+            # compare merkle root of the block with the merkle root of the transactions
 
-            # resolve not working need to figure out why
-            # 4, 5, 6 not sure how to implement.
+            if \
+             block['merkle_root'] != self.merkle_root(block['transactions']):
+                return False
 
             last_block = block
             current_index += 1
@@ -272,6 +270,7 @@ def mine():
         "proof": block["proof"],
         "previous_hash": block["previous_hash"],
     }
+
     return jsonify(response), 200
 
 # TODO: manage UTXO and wallets
